@@ -1,47 +1,386 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mi Landing Profesional</title>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+
+<style>
+
+body{
+  margin:0;
+  background:#FFFFFF;
+  font-family:'Poppins', sans-serif;
+  color:#182A69;
+}
+
+/* ===== Tabs (IDA / VUELTA) ===== */
+
+.tabs{
+  display:flex;
+  gap:18px;
+  margin:20px;
+}
+
+.tab{
+  flex:1;
+  text-align:center;
+  padding:14px 0;
+  border-radius:16px;
+  font-weight:800;
+  font-size:16px;
+  cursor:pointer;
+  background:#F3F4F6;
+  color:#182A69;
+  border:1px solid #E5E7EB;
+  transition:all .2s ease;
+}
+
+.tab.activa{
+  background:#182A69;
+  color:#FFFFFF;
+}
+
+/* ===== CONTENEDOR FECHAS ===== */
+
+.nav-fechas{
+  margin:0 20px;
+  background:#FFFFFF;
+  border-radius:18px;
+  padding:10px 12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  border:1px solid #E5E7EB;
+}
+
+.arrow{
+  color:#182A69;
+  font-size:20px;
+  cursor:pointer;
+  padding:4px 6px;
+  user-select:none;
+}
+
+.fechas{
+  display:flex;
+  gap:10px;
+  overflow-x:auto;
+  flex:1;
+  scroll-behavior:smooth;
+}
+
+.fechas::-webkit-scrollbar{
+  display:none;
+}
+
+.fecha-btn{
+  padding:8px 16px;
+  background:#F3F4F6;
+  border-radius:20px;
+  white-space:nowrap;
+  cursor:pointer;
+  font-size:14px;
+  color:#182A69;
+  font-weight:600;
+  transition:all .2s ease;
+}
+
+.fecha-btn.activa{
+  background:#182A69;
+  color:#FFFFFF;
+}
+
+/* ===== PARTIDOS ===== */
+
+.partidos{
+  display:none;
+  opacity:0;
+  transform:translateX(10px);
+  transition:all .25s ease;
+}
+
+.partidos.activa{
+  display:block;
+  opacity:1;
+  transform:translateX(0);
+}
+
+.fecha-calendario{
+  text-align:center;
+  font-size:19px;
+  font-weight:800;
+  color:#182A69;
+  margin:18px 0 20px 0;
+  padding:5px 0;
+}
+
+.match{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:#FFFFFF;
+  padding:14px 18px;
+  border-radius:16px;
+  margin:0 20px 14px 20px;
+  border:1px solid #E5E7EB;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+
+.team{
+  display:flex;
+  align-items:center;
+  width:42%;
+  gap:10px;
+}
+
+.logo-box{
+  width:34px;
+  height:34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.logo-box img{
+  max-width:100%;
+  max-height:100%;
+  object-fit:contain;
+}
+
+.team.local{
+  justify-content:flex-end;
+  text-align:right;
+}
+
+.team.visitante{
+  justify-content:flex-start;
+  text-align:left;
+}
+
+.team-name{
+  font-weight:700;
+  font-size:15px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.time{
+  width:16%;
+  text-align:center;
+  font-weight:800;
+  font-size:16px;
+  color:#182A69;
+}
+
+.sep{
+  color:#949494;
+  margin:0 4px;
+}
+
+.res-local,
+.res-visita{
+  color:#182A69;
+}
+
+/* RESPONSIVE */
+
+@media (max-width:480px){
+
+  .team-name{
+    font-size:13px;
+  }
+
+  .time{
+    font-size:14px;
+  }
+
+  .logo-box{
+    width:28px;
+    height:28px;
+  }
+
+}
+
+</style>
 </head>
+
 <body>
 
-  <header>
-    <h1>Hola, soy Nelson Cabañas 👋</h1>
-    <p>Desarrollador Web | Portafolios Profesionales en 72h</p>
-    <a href="#contacto" class="btn">Trabajemos juntos</a>
-  </header>
+<div class="tabs">
+  <div class="tab activa" onclick="mostrarBloque('ida',this)">IDA</div>
+  <div class="tab" onclick="mostrarBloque('vuelta',this)">VUELTA</div>
+</div>
 
-  <section class="servicios">
-    <h2>Servicios</h2>
-    <div class="cards">
-      <div class="card">
-        <h3>Landing Pages</h3>
-        <p>Diseños modernos y optimizados para conversión.</p>
+<div id="ida" class="bloque"></div>
+<div id="vuelta" class="bloque" style="display:none"></div>
+
+<script>
+
+google.charts.load('current');
+google.charts.setOnLoadCallback(loadMatches);
+
+let datosGlobales = [];
+
+function loadMatches(){
+
+const query = new google.visualization.Query(
+"https://docs.google.com/spreadsheets/d/1BnXAjeTz-Qhdg11ALhUrfhruAQGgs33LEtzFalz29Os/gviz/tq?tqx=out:json&gid=2117961486"
+);
+
+query.send(response => {
+
+if(response.isError()){
+  console.error(response.getMessage());
+  return;
+}
+
+const data = response.getDataTable();
+datosGlobales = [];
+
+for(let r=0; r<data.getNumberOfRows(); r++){
+
+  let fechaTexto = data.getValue(r,0); // A
+
+  // EXTRAER SOLO EL NÚMERO DE "Fecha 1"
+  let numeroFecha = parseInt(
+    String(fechaTexto).replace(/[^\d]/g,'')
+  );
+
+  datosGlobales.push({
+    fecha: numeroFecha,
+    titulo: data.getValue(r,1),             // B
+    local: data.getValue(r,2),              // C
+    logoLocal: data.getValue(r,3),          // D
+    resultadoLocal: data.getValue(r,5),     // F
+    separador: data.getValue(r,6),          // G
+    resultadoVisitante: data.getValue(r,7), // H
+    logoVisitante: data.getValue(r,9),      // J
+    visitante: data.getValue(r,10)          // K
+  });
+
+}
+
+crearBloque("ida",1,7);
+crearBloque("vuelta",8,14);
+
+mostrarFecha(1,"ida");
+
+});
+
+}
+
+function crearBloque(id,inicio,fin){
+
+let contenedor = document.getElementById(id);
+
+let html = `
+<div class="nav-fechas">
+<div class="arrow" onclick="scrollFechas('${id}',-200)">❮</div>
+<div class="fechas" id="fechas-${id}">
+`;
+
+for(let i=inicio;i<=fin;i++){
+  html += `<div class="fecha-btn" onclick="mostrarFecha(${i},'${id}')">Fecha ${i}</div>`;
+}
+
+html += `
+</div>
+<div class="arrow" onclick="scrollFechas('${id}',200)">❯</div>
+</div>
+`;
+
+for(let i=inicio;i<=fin;i++){
+
+  html += `<div id="fecha${i}" class="partidos">`;
+
+  const partidos = datosGlobales.filter(p=>p.fecha===i);
+
+  if(partidos.length>0){
+    html += `<div class="fecha-calendario">${partidos[0].titulo}</div>`;
+  }
+
+  partidos.forEach(p=>{
+    html += `
+    <div class="match">
+      <div class="team local">
+        <span class="team-name">${p.local}</span>
+        <div class="logo-box">
+          <img src="${p.logoLocal}">
+        </div>
       </div>
-      <div class="card">
-        <h3>Portafolios</h3>
-        <p>Web profesional lista para entrevistas.</p>
-      </div>
-      <div class="card">
-        <h3>Optimización</h3>
-        <p>Mejoramos velocidad y experiencia de usuario.</p>
+
+
+<div class="time">
+  <span class="res-local">${p.resultadoLocal ?? ''}</span>
+  <span class="sep">${p.separador ?? '-'}</span>
+  <span class="res-visita">${p.resultadoVisitante ?? ''}</span>
+</div>
+
+
+      <div class="team visitante">
+        <div class="logo-box">
+          <img src="${p.logoVisitante}">
+        </div>
+        <span class="team-name">${p.visitante}</span>
       </div>
     </div>
-  </section>
+    `;
+  });
 
-  <section id="contacto" class="contacto">
-    <h2>Contacto</h2>
-    <p>Escríbeme y empecemos tu proyecto.</p>
-    <a href="mailto:correo@ejemplo.com" class="btn">Enviar Email</a>
-  </section>
+  html += `</div>`;
+}
 
-  <footer>
-    <p>© 2026 Nelson Cabañas - Todos los derechos reservados</p>
-  </footer>
+contenedor.innerHTML = html;
+
+}
+
+function mostrarFecha(n, bloque){
+
+document
+  .querySelectorAll('#'+bloque+' .partidos')
+  .forEach(p => p.classList.remove('activa'));
+
+document
+  .querySelector('#'+bloque+' #fecha'+n)
+  ?.classList.add('activa');
+
+document
+  .querySelectorAll('#'+bloque+' .fecha-btn')
+  .forEach(b => b.classList.remove('activa'));
+
+const offset = bloque === 'ida' ? 1 : 8;
+
+document
+  .querySelectorAll('#'+bloque+' .fecha-btn')[n - offset]
+  ?.classList.add('activa');
+}
+
+function scrollFechas(bloque,px){
+document.getElementById('fechas-'+bloque).scrollLeft+=px;
+}
+
+function mostrarBloque(id,el){
+
+document.querySelectorAll('.bloque')
+.forEach(b=>b.style.display='none');
+
+document.getElementById(id).style.display='block';
+
+document.querySelectorAll('.tab')
+.forEach(t=>t.classList.remove('activa'));
+
+el.classList.add('activa');
+
+if(id==='ida') mostrarFecha(1,'ida');
+if(id==='vuelta') mostrarFecha(8,'vuelta');
+
+}
+
+</script>
 
 </body>
-
 </html>
