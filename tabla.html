@@ -63,38 +63,50 @@ tr:hover{
 
 </section>
 
-<script>
 
-// 🔥 PEGA AQUÍ TU LINK CSV
+  <script>
+
 const sheetURL = "https://docs.google.com/spreadsheets/d/1BnXAjeTz-Qhdg11ALhUrfhruAQGgs33LEtzFalz29Os/gviz/tq?tqx=out:json&gid=68472640";
 
 fetch(sheetURL)
-  .then(response => response.text())
+  .then(res => res.text())
   .then(data => {
-    const rows = data.split("\n").map(row => row.split(","));
     
-    const tableHead = document.querySelector("#tabla thead");
-    const tableBody = document.querySelector("#tabla tbody");
+    // 🔥 Limpiar respuesta Google
+    const json = JSON.parse(
+      data.substring(
+        data.indexOf("{"),
+        data.lastIndexOf("}") + 1
+      )
+    );
 
-    // Crear encabezado
+    const table = document.getElementById("tabla");
+    const thead = table.querySelector("thead");
+    const tbody = table.querySelector("tbody");
+
+    const cols = json.table.cols;
+    const rows = json.table.rows;
+
+    // Encabezados
     const headerRow = document.createElement("tr");
-    rows[0].forEach(cell => {
+    cols.forEach(col => {
       const th = document.createElement("th");
-      th.textContent = cell;
+      th.textContent = col.label;
       headerRow.appendChild(th);
     });
-    tableHead.appendChild(headerRow);
+    thead.appendChild(headerRow);
 
-    // Crear filas
-    rows.slice(1).forEach(row => {
+    // Filas
+    rows.forEach(row => {
       const tr = document.createElement("tr");
-      row.forEach(cell => {
+      row.c.forEach(cell => {
         const td = document.createElement("td");
-        td.textContent = cell;
+        td.textContent = cell ? cell.v : "";
         tr.appendChild(td);
       });
-      tableBody.appendChild(tr);
+      tbody.appendChild(tr);
     });
+
   });
 
 </script>
