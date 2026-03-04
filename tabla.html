@@ -59,7 +59,30 @@ tr:hover .col-pts{
   background:#0f1c4d;
 }
 
+/* ===== Columna Club ===== */
+.col-club{
+  text-align:left;
+  font-weight:600;
+  padding-left:12px;
+}
 
+/* ===== Columnas estadísticas D - J ===== */
+.col-stats{
+  color:#9aa0a6; /* gris claro elegante */
+  font-weight:500;
+}
+
+/* ===== Columna Pts (K) ===== */
+.col-pts{
+  background:#f2f3f5; /* gris muy claro */
+  font-weight:800;
+  color:#222;
+}
+
+/* Hover manteniendo estilo */
+tr:hover .col-pts{
+  background:#e8eaed;
+}
 
 </style>
 
@@ -119,9 +142,17 @@ fetch(sheetURL)
       const th = document.createElement("th");
       th.textContent = col.label;
 
-      if(index === 2) th.classList.add("col-club");
-      if(index === cols.length - 1) th.classList.add("col-pts");
 
+      // Columna Club
+if(index === 2) td.classList.add("col-club");
+
+// Columnas D hasta J (gris texto)
+if(index >= 3 && index <= 9) td.classList.add("col-stats");
+
+// Última columna (Pts - gris fondo)
+if(index === 10) td.classList.add("col-pts");
+      
+      
       headerRow.appendChild(th);
     });
     thead.appendChild(headerRow);
